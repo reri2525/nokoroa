@@ -1,0 +1,35 @@
+{
+  "project": {
+    "name": "Nokoroa",
+    "description": "Travel experience sharing platform",
+    "type": "fullstack"
+  },
+  "rules": [
+    "Always run lint after making code changes",
+    "Never commit without running tests",
+    "Use Japanese for UI text and comments",
+    "Follow existing code patterns and conventions",
+    "Always handle errors gracefully with user-friendly messages",
+    "Ensure all Chip components have onClick handlers",
+    "Use getTagColor utility for consistent tag coloring",
+    "Run docker-compose up -d before starting backend development"
+  ],
+  "commands": {
+    "frontend": {
+      "start": "cd nokoroa-frontend && npm run dev",
+      "lint": "cd nokoroa-frontend && npm run lint -- --fix",
+      "build": "cd nokoroa-frontend && npm run build"
+    },
+    "backend": {
+      "start": "cd nokoroa-backend && docker-compose up -d && npm run start:dev",
+      "lint": "cd nokoroa-backend && npm run lint",
+      "migrate": "cd nokoroa-backend && npx prisma migrate dev"
+    }
+  },
+  "preferences": {
+    "language": "ja",
+    "codeStyle": "consistent-with-existing",
+    "errorHandling": "user-friendly",
+    "testing": "before-commit"
+  }
+}
