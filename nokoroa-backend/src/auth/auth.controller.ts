@@ -1,8 +1,21 @@
-import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
 import { AuthService } from './auth.service';
+import { GoogleUser } from './strategies/google.strategy';
+
+interface GoogleAuthRequest extends Request {
+  user: GoogleUser;
+}
 
 @Controller('auth')
 export class AuthController {
@@ -15,21 +28,22 @@ export class AuthController {
 
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  async googleAuth(@Req() req) {
+  googleAuth(): void {
     // Guard redirects to Google
   }
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req, @Res() res: Response) {
+  async googleAuthRedirect(
+    @Req() req: GoogleAuthRequest,
+    @Res() res: Response,
+  ) {
     const result = await this.authService.googleLogin(req.user);
-    
-    // フロントエンドにトークンを渡してリダイレクト
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     res.redirect(
       `${frontendUrl}/auth/callback?token=${result.access_token}&user=${encodeURIComponent(
-        JSON.stringify(result.user)
-      )}`
+        JSON.stringify(result.user),
+      )}`,
     );
   }
 }

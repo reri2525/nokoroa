@@ -4,6 +4,7 @@ import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { GoogleUser } from './strategies/google.strategy';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +21,11 @@ export class AuthService {
       where: { email },
     });
 
-    if (user && user.password && (await bcrypt.compare(password, user.password))) {
+    if (
+      user &&
+      user.password &&
+      (await bcrypt.compare(password, user.password))
+    ) {
       const { password: _password, ...result } = user;
       return result;
     }
@@ -40,20 +45,17 @@ export class AuthService {
     };
   }
 
-  async googleLogin(googleUser: any) {
-    // Google認証ユーザーを検索または作成
+  async googleLogin(googleUser: GoogleUser) {
     let user = await this.prisma.user.findUnique({
       where: { googleId: googleUser.googleId },
     });
 
     if (!user) {
-      // メールアドレスで既存ユーザーをチェック
       user = await this.prisma.user.findUnique({
         where: { email: googleUser.email },
       });
 
       if (user) {
-        // 既存ユーザーにGoogleIDを紐付け
         user = await this.prisma.user.update({
           where: { id: user.id },
           data: {
@@ -63,7 +65,6 @@ export class AuthService {
           },
         });
       } else {
-        // 新規ユーザー作成
         user = await this.prisma.user.create({
           data: {
             email: googleUser.email,
