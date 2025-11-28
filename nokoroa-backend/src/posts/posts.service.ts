@@ -388,37 +388,35 @@ export class PostsService {
 
       const radiusFilter = `${distanceQuery} <= ${radius}`;
 
-      const posts = await this.prisma.$queryRaw`
+      const searchClause = q
+        ? `AND (
+            p.title ILIKE '%${q.replace(/'/g, "''")}%' OR
+            p.content ILIKE '%${q.replace(/'/g, "''")}%' OR
+            l.name ILIKE '%${q.replace(/'/g, "''")}%' OR
+            u.name ILIKE '%${q.replace(/'/g, "''")}%'
+          )`
+        : '';
+
+      const posts = await this.prisma.$queryRawUnsafe(`
         SELECT
           p.id, p.title, p.content, p."imageUrl", p."isPublic",
           p."createdAt", p."updatedAt", p."authorId", p."locationId",
           u.id as "author_id", u.name as "author_name", u.email as "author_email", u.avatar as "author_avatar",
           l.name as "location_name", l.prefecture, l.latitude, l.longitude,
-          ${Prisma.raw(distanceQuery)} as distance
+          ${distanceQuery} as distance
         FROM post p
         JOIN "user" u ON p."authorId" = u.id
         LEFT JOIN location l ON p."locationId" = l.id
         WHERE p."isPublic" = true
           AND l.latitude IS NOT NULL
           AND l.longitude IS NOT NULL
-          AND ${Prisma.raw(radiusFilter)}
-        ${
-          q
-            ? Prisma.raw(`
-          AND (
-            p.title ILIKE '%${q}%' OR
-            p.content ILIKE '%${q}%' OR
-            l.name ILIKE '%${q}%' OR
-            u.name ILIKE '%${q}%'
-          )
-        `)
-            : Prisma.empty
-        }
+          AND ${radiusFilter}
+        ${searchClause}
         ORDER BY distance ASC, p."createdAt" DESC
         LIMIT ${limit} OFFSET ${offset}
-      `;
+      `);
 
-      const total = await this.prisma.$queryRaw<{ count: bigint }[]>`
+      const total = await this.prisma.$queryRawUnsafe<{ count: bigint }[]>(`
         SELECT COUNT(*) as count
         FROM post p
         JOIN "user" u ON p."authorId" = u.id
@@ -426,20 +424,9 @@ export class PostsService {
         WHERE p."isPublic" = true
           AND l.latitude IS NOT NULL
           AND l.longitude IS NOT NULL
-          AND ${Prisma.raw(radiusFilter)}
-        ${
-          q
-            ? Prisma.raw(`
-          AND (
-            p.title ILIKE '%${q}%' OR
-            p.content ILIKE '%${q}%' OR
-            l.name ILIKE '%${q}%' OR
-            u.name ILIKE '%${q}%'
-          )
-        `)
-            : Prisma.empty
-        }
-      `;
+          AND ${radiusFilter}
+        ${searchClause}
+      `);
 
       const postIds = (posts as { id: number }[]).map((p) => p.id);
       const postTags = await this.prisma.postTag.findMany({
@@ -505,7 +492,16 @@ export class PostsService {
       };
     }
 
-    const posts = await this.prisma.$queryRaw`
+    const searchClauseNoLocation = q
+      ? `AND (
+          p.title ILIKE '%${q.replace(/'/g, "''")}%' OR
+          p.content ILIKE '%${q.replace(/'/g, "''")}%' OR
+          l.name ILIKE '%${q.replace(/'/g, "''")}%' OR
+          u.name ILIKE '%${q.replace(/'/g, "''")}%'
+        )`
+      : '';
+
+    const posts = await this.prisma.$queryRawUnsafe(`
       SELECT
         p.id, p.title, p.content, p."imageUrl", p."isPublic",
         p."createdAt", p."updatedAt", p."authorId", p."locationId",
@@ -517,23 +513,12 @@ export class PostsService {
       WHERE p."isPublic" = true
         AND l.latitude IS NOT NULL
         AND l.longitude IS NOT NULL
-      ${
-        q
-          ? Prisma.raw(`
-        AND (
-          p.title ILIKE '%${q}%' OR
-          p.content ILIKE '%${q}%' OR
-          l.name ILIKE '%${q}%' OR
-          u.name ILIKE '%${q}%'
-        )
-      `)
-          : Prisma.empty
-      }
+      ${searchClauseNoLocation}
       ORDER BY p."createdAt" DESC
       LIMIT ${limit} OFFSET ${offset}
-    `;
+    `);
 
-    const total = await this.prisma.$queryRaw<{ count: bigint }[]>`
+    const total = await this.prisma.$queryRawUnsafe<{ count: bigint }[]>(`
       SELECT COUNT(*) as count
       FROM post p
       JOIN "user" u ON p."authorId" = u.id
@@ -541,19 +526,8 @@ export class PostsService {
       WHERE p."isPublic" = true
         AND l.latitude IS NOT NULL
         AND l.longitude IS NOT NULL
-      ${
-        q
-          ? Prisma.raw(`
-        AND (
-          p.title ILIKE '%${q}%' OR
-          p.content ILIKE '%${q}%' OR
-          l.name ILIKE '%${q}%' OR
-          u.name ILIKE '%${q}%'
-        )
-      `)
-          : Prisma.empty
-      }
-    `;
+      ${searchClauseNoLocation}
+    `);
 
     const postIds = (posts as { id: number }[]).map((p) => p.id);
     const postTags = await this.prisma.postTag.findMany({
