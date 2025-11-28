@@ -1,19 +1,32 @@
-FROM node:23-slim
+FROM node:23-slim AS builder
 
 WORKDIR /app
 
-# OpenSSLのインストール
 RUN apt-get update -y && apt-get install -y openssl procps
 
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm ci
+
+COPY prisma ./prisma
+RUN npx prisma generate
 
 COPY . .
+RUN npm run build
 
-ENV DATABASE_URL="postgresql://postgres:password@postgres:5432/postgres?schema=public"
-ENV PORT=4000
-ENV FRONTEND_URL="http://localhost:3000"
+FROM node:23-slim AS runner
 
-EXPOSE 4000
+WORKDIR /app
 
-CMD ["npm", "run", "start:dev"]
+RUN apt-get update -y && apt-get install -y openssl procps && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/package.json ./
+
+ENV NODE_ENV=production
+ENV PORT=3001
+
+EXPOSE 3001
+
+CMD ["node", "dist/main.js"]
