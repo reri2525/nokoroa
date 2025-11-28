@@ -61,45 +61,86 @@ IaC: Terraform
 
 | メールアドレス | パスワード |
 |---------------|-----------|
-| michael@example.com | password123 |
-| james@example.com | password123 |
-| pierre@example.com | password123 |
-| david@example.com | password123 |
-| alex@example.com | password123 |
+| `michael@example.com` | `password123` |
+| `james@example.com` | `password123` |
+| `pierre@example.com` | `password123` |
+| `david@example.com` | `password123` |
+| `alex@example.com` | `password123` |
 
 ## ER図
 
 ```mermaid
 erDiagram
-    User ||--o{ Post : creates
-    User ||--o{ Bookmark : has
-    User ||--o{ Follow : follows
-    Post ||--o{ Bookmark : bookmarked
+    User ||--o{ Post : "投稿する"
+    User ||--o{ Bookmark : "ブックマーク"
+    User ||--o{ Follow : "フォローする"
+    User ||--o{ Follow : "フォローされる"
+    Post ||--o{ Bookmark : "ブックマークされる"
+    Post ||--o{ PostTag : "タグ付け"
+    Tag ||--o{ PostTag : "投稿に付く"
+    Location ||--o{ Post : "場所"
 
     User {
         int id PK
         string email UK
         string name
+        string password
+        string bio
+        string avatar
         string googleId UK
+        string provider
+        datetime createdAt
+        datetime updatedAt
     }
 
     Post {
         int id PK
         string title
         string content
+        string imageUrl
+        boolean isPublic
         int authorId FK
+        int locationId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    Tag {
+        int id PK
+        string name UK
+        string slug UK
+        datetime createdAt
+    }
+
+    PostTag {
+        int id PK
+        int postId FK
+        int tagId FK
+        datetime createdAt
+    }
+
+    Location {
+        int id PK
+        string name
+        string country
+        string prefecture
+        float latitude
+        float longitude
+        datetime createdAt
     }
 
     Bookmark {
         int id PK
         int userId FK
         int postId FK
+        datetime createdAt
     }
 
     Follow {
         int id PK
         int followerId FK
         int followingId FK
+        datetime createdAt
     }
 ```
 
