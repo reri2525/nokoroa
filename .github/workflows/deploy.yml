@@ -53,11 +53,10 @@ jobs:
           context: ./nokoroa-backend
           platforms: linux/arm64
           push: true
+          no-cache: true
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_BACKEND_REPOSITORY }}:${{ github.sha }}
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_BACKEND_REPOSITORY }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Download task definition
         run: |
