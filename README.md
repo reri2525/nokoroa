@@ -4,9 +4,9 @@
 
 **URL**: https://nokoroa.com
 
-![Nokoroa Screenshot](screencapture-localhost-3000-2025-11-26-02_41_56.png)
+![Nokoroa Screenshot](https://github.com/reri2525/nokoroa/releases/download/assets/screencapture-localhost-3000-2025-11-26-02_41_56.png)
 
-![Nokoroa Mobile](946935E3-951D-4129-B0F8-0241B9FE813D.jpeg)
+![Nokoroa Mobile](https://github.com/reri2525/nokoroa/releases/download/assets/946935E3-951D-4129-B0F8-0241B9FE813D.jpeg)
 
 ## 概要
 
@@ -208,74 +208,4 @@ nokoroa/
 
 ## インフラ構成図
 
-```mermaid
-graph TB
-    subgraph Internet
-        User[ユーザー]
-        GitHub[GitHub Actions]
-    end
-
-    subgraph AWS["AWS Cloud"]
-        subgraph DNS["DNS / SSL"]
-            Route53[Route 53<br/>nokoroa.com]
-            ACM[ACM<br/>SSL証明書]
-        end
-
-        subgraph VPC["VPC"]
-            subgraph Public["Public Subnet"]
-                ALB[Application<br/>Load Balancer]
-            end
-
-            subgraph Private["Private Subnet"]
-                subgraph ECS["ECS Fargate Cluster"]
-                    Frontend[Frontend<br/>Next.js]
-                    Backend[Backend<br/>NestJS]
-                end
-            end
-
-            subgraph Database["Database Subnet"]
-                RDS[(RDS<br/>PostgreSQL)]
-            end
-        end
-
-        subgraph Storage["Storage"]
-            S3[S3<br/>画像ストレージ]
-            ECR[ECR<br/>コンテナレジストリ]
-        end
-
-        subgraph Security["Security"]
-            Secrets[Secrets Manager<br/>認証情報]
-        end
-
-        subgraph Monitoring["Monitoring"]
-            CloudWatch[CloudWatch<br/>ログ/メトリクス]
-        end
-    end
-
-    User -->|HTTPS| Route53
-    Route53 --> ALB
-    ACM -.->|証明書| ALB
-    ALB -->|/api/*| Backend
-    ALB -->|/*| Frontend
-    Backend --> RDS
-    Backend --> S3
-    Frontend --> Backend
-    GitHub -->|Push| ECR
-    ECR -.->|Pull| ECS
-    Secrets -.->|環境変数| ECS
-    ECS --> CloudWatch
-
-    %% AWS Colors
-    style Route53 fill:#8C4FFF,stroke:#5A189A,color:#fff
-    style ACM fill:#DD344C,stroke:#B02A3D,color:#fff
-    style ALB fill:#8C4FFF,stroke:#5A189A,color:#fff
-    style Frontend fill:#FF9900,stroke:#CC7A00,color:#fff
-    style Backend fill:#FF9900,stroke:#CC7A00,color:#fff
-    style RDS fill:#3B48CC,stroke:#2E3A9F,color:#fff
-    style S3 fill:#3F8624,stroke:#2D6119,color:#fff
-    style ECR fill:#FF9900,stroke:#CC7A00,color:#fff
-    style Secrets fill:#DD344C,stroke:#B02A3D,color:#fff
-    style CloudWatch fill:#FF4F8B,stroke:#CC3F6F,color:#fff
-    style User fill:#232F3E,stroke:#1A242F,color:#fff
-    style GitHub fill:#232F3E,stroke:#1A242F,color:#fff
-```
+![Infrastructure](https://github.com/reri2525/nokoroa/releases/download/assets/messageImage_1764334338555.jpg)
