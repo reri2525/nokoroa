@@ -5,12 +5,82 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
+const postInclude = {
+  author: {
+    select: { id: true, name: true, email: true, avatar: true },
+  },
+  location: true,
+  postTags: {
+    include: {
+      tag: true,
+    },
+  },
+  _count: {
+    select: { bookmarks: true },
+  },
+};
+
+interface PostWithRelations {
+  id: number;
+  title: string;
+  content: string;
+  imageUrl: string | null;
+  isPublic: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  authorId: number;
+  locationId: number | null;
+  author: {
+    id: number;
+    name: string;
+    email: string;
+    avatar: string | null;
+  };
+  location: {
+    id: number;
+    name: string;
+    country: string;
+    prefecture: string | null;
+    latitude: number | null;
+    longitude: number | null;
+  } | null;
+  postTags: {
+    tag: {
+      id: number;
+      name: string;
+      slug: string;
+    };
+  }[];
+  _count: {
+    bookmarks: number;
+  };
+}
+
+function formatPost(post: PostWithRelations) {
+  return {
+    id: post.id,
+    title: post.title,
+    content: post.content,
+    imageUrl: post.imageUrl,
+    isPublic: post.isPublic,
+    createdAt: post.createdAt,
+    updatedAt: post.updatedAt,
+    authorId: post.authorId,
+    author: post.author,
+    tags: post.postTags.map((pt) => pt.tag.name),
+    location: post.location?.name || null,
+    latitude: post.location?.latitude || null,
+    longitude: post.location?.longitude || null,
+    prefecture: post.location?.prefecture || null,
+    favoritesCount: post._count.bookmarks,
+  };
+}
+
 @Injectable()
 export class FavoritesService {
   constructor(private prisma: PrismaService) {}
 
   async addFavorite(userId: number, postId: number) {
-    // 投稿が存在するかチェック
     const post = await this.prisma.post.findUnique({
       where: { id: postId, isPublic: true },
     });
@@ -19,7 +89,6 @@ export class FavoritesService {
       throw new NotFoundException(`Post with ID ${postId} not found`);
     }
 
-    // 既にお気に入りに追加されているかチェック
     const existingFavorite = await this.prisma.bookmark.findUnique({
       where: {
         userId_postId: {
@@ -33,21 +102,23 @@ export class FavoritesService {
       throw new ConflictException('Post is already in favorites');
     }
 
-    return this.prisma.bookmark.create({
+    const bookmark = await this.prisma.bookmark.create({
       data: {
         userId,
         postId,
       },
       include: {
         post: {
-          include: {
-            author: {
-              select: { id: true, name: true, email: true, avatar: true },
-            },
-          },
+          include: postInclude,
         },
       },
     });
+
+    return {
+      id: bookmark.id,
+      createdAt: bookmark.createdAt,
+      post: formatPost(bookmark.post as PostWithRelations),
+    };
   }
 
   async removeFavorite(userId: number, postId: number) {
@@ -81,14 +152,7 @@ export class FavoritesService {
         where: { userId },
         include: {
           post: {
-            include: {
-              author: {
-                select: { id: true, name: true, email: true, avatar: true },
-              },
-              _count: {
-                select: { bookmarks: true },
-              },
-            },
+            include: postInclude,
           },
         },
         orderBy: { createdAt: 'desc' },
@@ -102,10 +166,7 @@ export class FavoritesService {
       favorites: favorites.map((fav) => ({
         id: fav.id,
         createdAt: fav.createdAt,
-        post: {
-          ...fav.post,
-          favoritesCount: fav.post._count.bookmarks,
-        },
+        post: formatPost(fav.post as PostWithRelations),
       })),
       total,
       hasMore: offset + limit < total,
