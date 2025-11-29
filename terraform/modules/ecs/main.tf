@@ -151,7 +151,11 @@ resource "aws_ecs_task_definition" "backend" {
         },
         {
           name  = "GOOGLE_CALLBACK_URL"
-          value = var.environment == "prod" ? "https://nokoroa.com/auth/google/callback" : "https://${var.api_domain}/auth/google/callback"
+          value = var.environment == "prod" ? "https://nokoroa.com/api/auth/google/callback" : "https://${var.api_domain}/api/auth/google/callback"
+        },
+        {
+          name  = "FRONTEND_URL"
+          value = var.environment == "prod" ? "https://nokoroa.com" : "http://localhost:3000"
         }
       ]
 
@@ -165,7 +169,7 @@ resource "aws_ecs_task_definition" "backend" {
       }
 
       healthCheck = {
-        command     = ["CMD-SHELL", "curl -f http://localhost:${var.backend_port}/health || exit 1"]
+        command     = ["CMD-SHELL", "curl -f http://localhost:${var.backend_port}/api || exit 1"]
         interval    = 30
         timeout     = 5
         retries     = 3
