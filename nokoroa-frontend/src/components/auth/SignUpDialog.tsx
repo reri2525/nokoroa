@@ -86,7 +86,7 @@ export default function SignUpDialog({
 
   const handleGoogleSignup = () => {
     // Google OAuth認証URLにリダイレクト
-    window.location.href = `${API_CONFIG.BASE_URL}/auth/google`;
+    window.location.href = API_CONFIG.buildUrl(API_CONFIG.endpoints.googleAuth);
   };
 
   return (
