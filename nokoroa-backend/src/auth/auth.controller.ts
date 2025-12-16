@@ -11,6 +11,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
 
 import { AuthService } from './auth.service';
+import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { GoogleUser } from './strategies/google.strategy';
 
 interface GoogleAuthRequest extends Request {
@@ -27,7 +28,7 @@ export class AuthController {
   }
 
   @Get('google')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   googleAuth(): void {
     // Guard redirects to Google
   }
