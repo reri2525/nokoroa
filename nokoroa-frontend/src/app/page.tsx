@@ -46,7 +46,11 @@ export default function TopPage() {
       if (page === 0) {
         setAllPosts(posts.posts);
       } else {
-        setAllPosts((prev) => [...prev, ...posts.posts]);
+        setAllPosts((prev) => {
+          const existingIds = new Set(prev.map((p) => p.id));
+          const newPosts = posts.posts.filter((p) => !existingIds.has(p.id));
+          return [...prev, ...newPosts];
+        });
       }
       setHasMore(posts.hasMore);
       setIsLoadingMore(false);
