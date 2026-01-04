@@ -9,15 +9,33 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { FavoritesService } from './favorites.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
+@ApiTags('favorites')
 @Controller('favorites')
 export class FavoritesController {
   constructor(private readonly favoritesService: FavoritesService) {}
 
   @Post(':postId')
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'ブックマーク追加',
+    description: '投稿をブックマークに追加します',
+  })
+  @ApiParam({ name: 'postId', description: '投稿ID', example: 1 })
+  @ApiResponse({ status: 201, description: '追加成功' })
+  @ApiResponse({ status: 401, description: '認証エラー' })
+  @ApiResponse({ status: 404, description: '投稿が見つかりません' })
   async addFavorite(
     @Param('postId', ParseIntPipe) postId: number,
     @Request() req: { user: { userId: number } },
@@ -27,6 +45,14 @@ export class FavoritesController {
 
   @Delete(':postId')
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'ブックマーク解除',
+    description: '投稿のブックマークを解除します',
+  })
+  @ApiParam({ name: 'postId', description: '投稿ID', example: 1 })
+  @ApiResponse({ status: 200, description: '解除成功' })
+  @ApiResponse({ status: 401, description: '認証エラー' })
   async removeFavorite(
     @Param('postId', ParseIntPipe) postId: number,
     @Request() req: { user: { userId: number } },
@@ -36,6 +62,25 @@ export class FavoritesController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'ブックマーク一覧取得',
+    description: '自分のブックマーク一覧を取得します',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: '取得件数',
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    description: 'オフセット',
+    example: 0,
+  })
+  @ApiResponse({ status: 200, description: '取得成功' })
+  @ApiResponse({ status: 401, description: '認証エラー' })
   async getUserFavorites(
     @Request() req: { user: { userId: number } },
     @Query('limit', ParseIntPipe) limit: number = 10,
@@ -50,6 +95,14 @@ export class FavoritesController {
 
   @Get('check/:postId')
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'ブックマーク状態確認',
+    description: '投稿のブックマーク状態を確認します',
+  })
+  @ApiParam({ name: 'postId', description: '投稿ID', example: 1 })
+  @ApiResponse({ status: 200, description: '確認成功' })
+  @ApiResponse({ status: 401, description: '認証エラー' })
   async checkFavoriteStatus(
     @Param('postId', ParseIntPipe) postId: number,
     @Request() req: { user: { userId: number } },
@@ -58,6 +111,12 @@ export class FavoritesController {
   }
 
   @Get('stats/:postId')
+  @ApiOperation({
+    summary: 'ブックマーク統計取得',
+    description: '投稿のブックマーク数を取得します',
+  })
+  @ApiParam({ name: 'postId', description: '投稿ID', example: 1 })
+  @ApiResponse({ status: 200, description: '取得成功' })
   async getFavoriteStats(@Param('postId', ParseIntPipe) postId: number) {
     return this.favoritesService.getFavoriteStats(postId);
   }
