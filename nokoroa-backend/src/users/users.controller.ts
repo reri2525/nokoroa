@@ -13,6 +13,15 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiBody,
+  ApiParam,
+} from '@nestjs/swagger';
 import { memoryStorage } from 'multer';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -30,6 +39,7 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
+@ApiTags('users')
 @Controller('users')
 export class UsersController {
   constructor(
@@ -38,6 +48,16 @@ export class UsersController {
   ) {}
 
   @Post('signup')
+  @ApiOperation({
+    summary: 'ユーザー登録',
+    description: '新規ユーザーを登録します',
+  })
+  @ApiResponse({ status: 201, description: '登録成功' })
+  @ApiResponse({ status: 400, description: '入力値エラー' })
+  @ApiResponse({
+    status: 409,
+    description: 'メールアドレスが既に使用されています',
+  })
   async signup(
     @Body() createUserDto: CreateUserDto,
   ): Promise<CreateUserResponse> {
@@ -47,11 +67,25 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: '自分のプロフィール取得',
+    description: 'ログインユーザーのプロフィールを取得します',
+  })
+  @ApiResponse({ status: 200, description: '取得成功' })
+  @ApiResponse({ status: 401, description: '認証エラー' })
   async getProfile(@Request() req: AuthenticatedRequest) {
     return this.usersService.findById(req.user.userId, req.user.userId);
   }
 
   @Get(':id')
+  @ApiOperation({
+    summary: 'ユーザー情報取得',
+    description: '指定したユーザーの情報を取得します',
+  })
+  @ApiParam({ name: 'id', description: 'ユーザーID', example: 1 })
+  @ApiResponse({ status: 200, description: '取得成功' })
+  @ApiResponse({ status: 404, description: 'ユーザーが見つかりません' })
   async getUserById(
     @Param('id', ParseIntPipe) id: number,
     @Request()
@@ -63,6 +97,13 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Put('profile')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'プロフィール更新',
+    description: 'ログインユーザーのプロフィールを更新します',
+  })
+  @ApiResponse({ status: 200, description: '更新成功' })
+  @ApiResponse({ status: 401, description: '認証エラー' })
   async updateProfile(
     @Request() req: AuthenticatedRequest,
     @Body() updateUserDto: UpdateUserDto,
@@ -72,6 +113,17 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Put('change-password')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'パスワード変更',
+    description: 'ログインユーザーのパスワードを変更します',
+  })
+  @ApiResponse({ status: 200, description: '変更成功' })
+  @ApiResponse({
+    status: 400,
+    description: '現在のパスワードが正しくありません',
+  })
+  @ApiResponse({ status: 401, description: '認証エラー' })
   async changePassword(
     @Request() req: AuthenticatedRequest,
     @Body() changePasswordDto: ChangePasswordDto,
@@ -81,6 +133,27 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Post('upload-avatar')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'アバター画像アップロード',
+    description: 'プロフィール画像をアップロードします',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: '画像ファイル（jpg, jpeg, png, gif, webp、5MB以下）',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: 'アップロード成功' })
+  @ApiResponse({ status: 400, description: 'ファイルが不正です' })
+  @ApiResponse({ status: 401, description: '認証エラー' })
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
