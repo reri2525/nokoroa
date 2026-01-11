@@ -4,9 +4,9 @@
 
 **URL**: https://nokoroa.com
 
-![Nokoroa Screenshot](https://github.com/reri2525/nokoroa/releases/download/assets/screencapture-localhost-3000-2025-11-26-02_41_56.png)
+![Nokoroa Screenshot](https://github.com/sugitayuuki/nokoroa/releases/download/assets/screencapture-localhost-3000-2025-11-26-02_41_56.png)
 
-![Nokoroa Mobile](https://github.com/reri2525/nokoroa/releases/download/assets/946935E3-951D-4129-B0F8-0241B9FE813D.jpeg)
+![Nokoroa Mobile](https://github.com/sugitayuuki/nokoroa/releases/download/assets/946935E3-951D-4129-B0F8-0241B9FE813D.jpeg)
 
 ## 概要
 
@@ -41,6 +41,52 @@ Instagramなどの既存SNSでは、投稿形式が限定されていたり、�
 
 そこで、旅行の思い出共有に特化し、地図から投稿を探せるなど旅行体験に最適化されたプラットフォームを自分で作ることにしました。
 
+## 技術選定理由
+
+各技術を採用した理由を記載しております。
+
+### バックエンド: NestJS
+
+**採用理由**:
+- 前職で使用しており、実務経験があったため
+- フロントエンドのNext.jsと同じTypeScriptで統一できるため
+- 中規模サービスを想定しており、NestJSのモジュール構造がちょうど良いと判断したため
+
+### ORM: Prisma
+
+**採用理由**:
+- スキーマ駆動開発ができ、マイグレーション管理が直感的なため
+- 生成される型が厳密で、コンパイル時にDBアクセスのエラーを検出できるため
+- ドキュメントが充実しており、学習しやすかったため
+
+### インフラ: AWS ECS Fargate + Terraform
+
+**採用理由**:
+- 実務で使われるインフラ構成を経験したかったため
+- Terraformでインフラをコード管理することで、環境の再現性を担保できるため
+- Fargateを選択することで、サーバー管理の負担を減らしつつ本番運用レベルの構成を実現できるため
+
+### 認証: JWT + Google OAuth
+
+**採用理由**:
+- 認証の仕組みを理解するため、自前でJWT認証を実装したかったため
+- 外部サービスに依存せず、認証フロー全体をコントロールできるため
+- Google OAuthはユーザーの利便性向上のために追加したため
+
+### CI / CD: GitHub Actions
+
+**採用理由**:
+- GitHubとの統合がシームレスで、設定が直感的なため
+- パブリックリポジトリであれば無料枠が大きいため
+
+### フロントエンド: Next.js (App Router)
+
+**採用理由**:
+- 前職で使用しており、実務経験があったため
+- Reactエコシステムが充実しており、情報量が多いため
+- App Routerを使うことで、最新のReact Server Componentsを活用できるため
+- React/Next.jsが世界的なトレンドだったため
+
 ## 使用技術一覧
 
 **バックエンド**: Node.js 23 / NestJS 11 / TypeScript 5 / Prisma 6 / PostgreSQL
@@ -65,7 +111,9 @@ IaC: Terraform
 
 環境構築: Docker / Docker Compose
 
-**認証**: JWT / Google OAuth 2.0 / Google Maps JavaScript API
+**認証**: JWT / Google OAuth 2.0
+
+**外部API**: Google Maps JavaScript API
 
 ## ER図
 
@@ -208,4 +256,4 @@ nokoroa/
 
 ## インフラ構成図
 
-![Infrastructure](https://github.com/reri2525/nokoroa/releases/download/assets/messageImage_1764334338555.jpg)
+![Infrastructure](https://github.com/sugitayuuki/nokoroa/releases/download/assets/messageImage_1764334338555.jpg)
